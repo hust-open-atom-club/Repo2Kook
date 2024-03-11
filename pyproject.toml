@@ -1,7 +1,7 @@
 [project]
-name = "Repo2Lark"
-version = "0.0.2"
-description = "Default template for PDM package"
+name = "Repo2Kook"
+version = "0.0.1"
+description = "Send GitHub Webhook to Kook"
 authors = [
     {name = "jingfelix", email = "jingfelix@outlook.com"},
 ]
@@ -18,11 +18,11 @@ readme = "README.md"
 license = {text = "GPLv3"}
 
 [project.urls]
-Homepage = "https://github.com/jingfelix/Repo2Lark"
-"Bug Tracker" = "https://github.com/jingfelix/Repo2Lark"
+Homepage = "https://github.com/jingfelix/Repo2Kook"
+"Bug Tracker" = "https://github.com/jingfelix/Repo2Kook"
 
 [project.scripts]
-repo2lark = "repo2lark.__init__:run"
+repo2kook = "repo2kook.__init__:run"
 
 [build-system]
 requires = ["pdm-backend"]

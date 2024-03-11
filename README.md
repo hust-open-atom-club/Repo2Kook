@@ -1,12 +1,12 @@
 <div align="center">
-    <h1>Repo2Lark</h1>
+    <h1>Repo2Kook</h1>
     <a href="https://pypi.org/project/Repo2Lark/"><img src="https://img.shields.io/pypi/v/Repo2Lark" alt="PyPI"></a>
     <!-- <a href="https://pypi.org/project/Repo2Lark/"><img src="https://img.shields.io/pypi/pyversions/Repo2Lark" alt="PyPI - Python Version"></a> -->
     <a href="https://github.com/jingfelix/Repo2Lark/blob/main/LICENSE"><img src="https://img.shields.io/pypi/l/Repo2Lark" alt="PyPI - License"></a>
     <a href="https://pdm-project.org"><img src="https://img.shields.io/badge/pdm-managed-blueviolet" alt="pdm-managed"></a>
     <a href="https://zeabur.com?referralCode=jingfelix"><img src="https://img.shields.io/badge/zeabur-deployed-6300FF" alt="Zeabur-Deployed"></a>
     <div>
-    优雅地转发 GitHub Webhook 事件到飞书
+    优雅地转发 GitHub Webhook 事件到 Kook
     </div>
 </div>
 

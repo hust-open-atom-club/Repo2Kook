@@ -1,8 +1,8 @@
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from repo2lark.config import settings
-from repo2lark.utils import get_body, verify_signature
+from .config import settings
+from .utils import get_body, verify_signature
 
 
 class VerifySignatureMiddleware(BaseHTTPMiddleware):

@@ -1,22 +1,22 @@
 import json
 import urllib.parse as urlparse
-from typing import Optional
 
 from fastapi import APIRouter, BackgroundTasks, Request
 from fastapi.exceptions import HTTPException
 
-from repo2lark.config import settings
-from repo2lark.models import IssueCommentEvent, IssueEvent, PREvent, PushEvent
-from repo2lark.utils import send_to_lark, truncate
+from .config import settings
+from .models import IssueCommentEvent, IssueEvent, PREvent, PushEvent
+from .utils import send_to_kook, truncate
 
 router = APIRouter()
 
 
-@router.post("/webhook")
-@router.post("/open-apis/bot/v2/hook/{lark_webhook_token}")
+# @router.post("/webhook")
+# @router.post("/open-apis/bot/v2/hook/{lark_webhook_token}")
+@router.post("/kook/{kook_channel_id}")
 async def webhook(
     request: Request,
-    lark_webhook_token: Optional[str] = None,
+    kook_channel_id: str = None,
     background_tasks: BackgroundTasks = None,
 ):
     headers = request.headers
@@ -25,7 +25,7 @@ async def webhook(
         body = await request.body()
         return await webhook_urlencoded(
             request,
-            lark_webhook_token=lark_webhook_token,
+            kook_channel_id=kook_channel_id,
             payload=body.decode("utf-8"),
             background_tasks=background_tasks,
         )
@@ -35,7 +35,7 @@ async def webhook(
         payload = dict(urlparse.parse_qsl(body.decode("utf-8")))
         return await webhook_urlencoded(
             request,
-            lark_webhook_token=lark_webhook_token,
+            kook_channel_id=kook_channel_id,
             payload=payload.get("payload", None),
             background_tasks=background_tasks,
         )
@@ -45,18 +45,14 @@ async def webhook(
 
 async def webhook_urlencoded(
     request: Request,
-    lark_webhook_token: Optional[str] = None,
+    kook_channel_id: str = None,
     payload: str = None,
     background_tasks: BackgroundTasks = None,
 ):
     headers = request.headers
 
-    if lark_webhook_token is not None:
-        lark_webhook_url = settings.lark_webhook_base_url + lark_webhook_token
-        lark_webhook_secret = None
-    else:
-        lark_webhook_url = settings.lark_webhook_url
-        lark_webhook_secret = settings.lark_webhook_secret
+    if kook_channel_id is None:
+        raise HTTPException(status_code=400, detail="kook_channel_id cannot be None")
 
     x_github_event = headers.get("X-GitHub-Event", None)
     if x_github_event is None:
@@ -67,10 +63,8 @@ async def webhook_urlencoded(
             params = PushEvent(**json.loads(payload))
 
             background_tasks.add_task(
-                send_to_lark,
-                settings.push_template_id,
-                lark_webhook_url=lark_webhook_url,
-                lark_webhook_secret=lark_webhook_secret,
+                send_to_kook,
+                kook_channel_id=kook_channel_id,
                 variables={
                     "commiter": params.pusher.name,
                     "repository": params.repository.full_name,
@@ -87,10 +81,8 @@ async def webhook_urlencoded(
             params = IssueEvent(**json.loads(payload))
 
             background_tasks.add_task(
-                send_to_lark,
-                settings.issue_template_id,
-                lark_webhook_url=lark_webhook_url,
-                lark_webhook_secret=lark_webhook_secret,
+                send_to_kook,
+                kook_channel_id=kook_channel_id,
                 variables={
                     "action": params.action.capitalize(),
                     "repository": params.repository.full_name,
@@ -107,10 +99,8 @@ async def webhook_urlencoded(
             params = IssueCommentEvent(**json.loads(payload))
 
             background_tasks.add_task(
-                send_to_lark,
-                settings.issue_comment_template_id,
-                lark_webhook_url=lark_webhook_url,
-                lark_webhook_secret=lark_webhook_secret,
+                send_to_kook,
+                kook_channel_id=kook_channel_id,
                 variables={
                     "action": params.action.capitalize(),
                     "user": params.comment.user.login,
@@ -127,10 +117,8 @@ async def webhook_urlencoded(
             params = PREvent(**json.loads(payload))
 
             background_tasks.add_task(
-                send_to_lark,
-                settings.pr_template_id,
-                lark_webhook_url=lark_webhook_url,
-                lark_webhook_secret=lark_webhook_secret,
+                send_to_kook,
+                kook_channel_id=kook_channel_id,
                 variables={
                     "action": params.action.capitalize(),
                     "user": params.pull_request.user.login,

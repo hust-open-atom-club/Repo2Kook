@@ -14,4 +14,4 @@ ENV PYTHONUNBUFFERED=1
 COPY requirements.txt .
 RUN python -m pip install --no-cache-dir --upgrade repo2kook
 
-CMD ["uvicorn", "repo2kook:app", "--port", "3030", "--host", "0.0.0.0", "--workers", "4"]
+CMD ["uvicorn", "repo2kook:app", "--port", "3030", "--host", "0.0.0.0", "--workers", "2"]

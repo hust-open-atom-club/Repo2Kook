@@ -12,4 +12,6 @@ app.add_middleware(VerifySignatureMiddleware)
 def run():
     import uvicorn
 
-    uvicorn.run("repo2kook:app", host="0.0.0.0", port=3030, reload=True)
+    uvicorn.run(
+        "repo2kook:app", host="0.0.0.0", port=3030, reload=True, log_level="info"
+    )

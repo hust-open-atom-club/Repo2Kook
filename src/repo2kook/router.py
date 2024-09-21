@@ -3,9 +3,11 @@ import urllib.parse as urlparse
 
 from fastapi import APIRouter, BackgroundTasks, Request
 from fastapi.exceptions import HTTPException
+from uvicorn.server import logger
 
 from .config import settings
 from .models import IssueCommentEvent, IssueEvent, PREvent, PushEvent
+from .templates import issue_card, issue_comment_card, pull_request_card, push_card
 from .utils import send_to_kook, truncate
 
 router = APIRouter()
@@ -58,6 +60,8 @@ async def webhook_urlencoded(
     if x_github_event is None:
         return {"message": "X-GitHub-Event is None"}
 
+    logger.debug(f"X-GitHub-Event: {x_github_event}")
+    logger.debug(f"kook_channel_id: {kook_channel_id}")
     match x_github_event:
         case "push":
             params = PushEvent(**json.loads(payload))
@@ -65,6 +69,7 @@ async def webhook_urlencoded(
             background_tasks.add_task(
                 send_to_kook,
                 kook_channel_id=kook_channel_id,
+                card=push_card,
                 variables={
                     "commiter": params.pusher.name,
                     "repository": params.repository.full_name,
@@ -83,6 +88,7 @@ async def webhook_urlencoded(
             background_tasks.add_task(
                 send_to_kook,
                 kook_channel_id=kook_channel_id,
+                card=issue_card,
                 variables={
                     "action": params.action.capitalize(),
                     "repository": params.repository.full_name,
@@ -101,6 +107,7 @@ async def webhook_urlencoded(
             background_tasks.add_task(
                 send_to_kook,
                 kook_channel_id=kook_channel_id,
+                card=issue_comment_card,
                 variables={
                     "action": params.action.capitalize(),
                     "user": params.comment.user.login,
@@ -119,6 +126,7 @@ async def webhook_urlencoded(
             background_tasks.add_task(
                 send_to_kook,
                 kook_channel_id=kook_channel_id,
+                card=pull_request_card,
                 variables={
                     "action": params.action.capitalize(),
                     "user": params.pull_request.user.login,

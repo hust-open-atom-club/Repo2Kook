@@ -1,14 +1,26 @@
 import base64
 import hashlib
 import hmac
-import time
+import json as jsonlib
 
 import httpx
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
 from starlette.types import Message
+from uvicorn.server import logger
 
 from .config import settings
+
+
+def format_card(card, variables):
+    if isinstance(card, dict):
+        return {k: format_card(v, variables) for k, v in card.items()}
+    elif isinstance(card, list):
+        return [format_card(elem, variables) for elem in card]
+    elif isinstance(card, str):
+        return card.format(**variables)
+    else:
+        return card
 
 
 def verify_signature(payload_body, secret_token, signature_header) -> None:
@@ -44,43 +56,17 @@ def gen_sign(timestamp, secret):
     return sign
 
 
-# async def send_to_lark(
-#     template_id: str, lark_webhook_url: str, lark_webhook_secret: str, variables: dict
-# ) -> None:
-#     data = {
-#         "msg_type": "interactive",
-#         "card": {
-#             "type": "template",
-#             "data": {
-#                 "template_id": template_id,
-#                 "template_variable": variables,
-#             },
-#         },
-#     }
-#     if lark_webhook_secret != "" and lark_webhook_secret is not None:
-#         timestamp = str(int(time.time()))
-#         sign = gen_sign(timestamp, lark_webhook_secret)
-#         data["timestamp"] = timestamp
-#         data["sign"] = sign
-
-#     if lark_webhook_url == "" or lark_webhook_url is None:
-#         raise HTTPException(status_code=500, detail="lark_webhook_url is empty!")
-
-#     # TODO 增加超时和重试
-#     async with httpx.AsyncClient(timeout=15) as client:
-#         res = await client.post(lark_webhook_url, json=data)
-
-#     if res.status_code != 200 or res.json()["code"] != 0:
-#         raise HTTPException(status_code=500, detail=res.text)
-
-
-async def send_to_kook(kook_channel_id: str, variables: dict) -> None:
+async def send_to_kook(
+    kook_channel_id: str, card: dict | list, variables: dict
+) -> None:
     """Send card message to Kook."""
 
+    card = format_card(card, variables)
+
     json = {
-        "type": 1,
+        "type": 10,
         "target_id": kook_channel_id,
-        "content": variables.get("action", "Action not Found"),
+        "content": jsonlib.dumps(card),
     }
 
     async with httpx.AsyncClient(timeout=15) as client:
@@ -89,6 +75,12 @@ async def send_to_kook(kook_channel_id: str, variables: dict) -> None:
             json=json,
             headers={"Authorization": f"Bot {settings.kook_token}"},
         )
+
+        if res.status_code != 200:
+            logger.error(f"Failed to send message to Kook: {res.text}")
+            raise HTTPException(
+                status_code=500, detail="Failed to send message to Kook"
+            )
 
 
 def truncate(text: str, length: int = 80) -> str:

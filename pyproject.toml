@@ -1,6 +1,6 @@
 [project]
 name = "Repo2Kook"
-version = "0.0.1"
+version = "0.0.2"
 description = "Send GitHub Webhook to Kook"
 authors = [
     {name = "jingfelix", email = "jingfelix@outlook.com"},
